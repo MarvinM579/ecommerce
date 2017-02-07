@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <form class="" action="/add_game" method="post">
+        <div class="form-group">
+            <label for="game">Game:</label>
+            <input class="form-control" type="text" name="game" placeholder="game">
+        </div>
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <input class="form-control" type="text" name="desc" placeholder="description">
+        </div>
+        <div class="form-group">
+            <label for="sel1">Select list:</label>
+            <select name="console" class="form-control" id="sel1">
+    <option>PSOne</option>
+    <option>NES</option>
+    <option>SNES</option>
+    <option>Genesis</option>
+    <option>Game Gear</option>
+    <option>Gameboy</option>
+    <option>Gameboy Color</option>
+    <option>Gameboy Advance</option>
+    <option>Gamecube</option>
+    <option>N64</option>
+    <option>PS2</option>
+    <option>Xbox</option>
+    <option>PC</option>
+  </select>
+        </div>
+        <div class="form-group">
+            <label for="genre">Genre:</label>
+            <input type="text" name="genre" placeholder="Genre">
+        </div>
+        <div class="form-group">
+            <label for="sel1">Select list:</label>
+            <select name="rating" class="form-control" id="sel1">
+<option>EC</option>
+<option>E</option>
+<option>E 10+</option>
+<option>Teen</option>
+<option>Mature</option>
+<option>AO</option>
+<option>RP</option>
+</select>
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity:</label>
+            <input type="text" name="quantity" placeholder="#">
+        </div>
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="text" name="price" placeholder="$">
+        </div>
+        <input type="submit" value="submit">
+    </form>
+</body>
+
+</html>
