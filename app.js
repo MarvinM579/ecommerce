@@ -42,12 +42,18 @@ function Cart (myItems) {
     }
 
     this.add = function (item, id) {
-        var storedItem = this.items[id];
+        var storedItem = id;
+        Product.findbyId(id)
+            .then(function(docs) {
+                console.log('results', docs);
+            });
+
         if (!storedItem) {
             storedItem = this.items[id] = {qty: 0, item: item, price: 0};
         }
         storedItem.qty++;
         storedItem.price = storedItem.item.price * storedItem.qty;
+        console.log(storedItem);
         this.totalQty++;
         this.totalPrice += storedItem.price;
     };
