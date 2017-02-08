@@ -28,8 +28,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(session(sess));
 
-function Cart (initItems) {
-    this.items = initItems;
+function Cart (myItems) {
+    this.items = myItems;
 
     this.totalQty = 0;
     this.totalPrice = 0;
