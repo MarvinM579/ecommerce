@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bluebird = require('bluebird');
 const bodyParser = require('body-parser');
+var expressHbs = require('express-handlebars');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 var session = require('express-session');
@@ -19,6 +20,7 @@ var sess = {
     cookie: {}
 }
 
+app.engine('.hbs', expressHbs({defaultLayout: 'layout', extname: '.hbs'}));
 app.set('view engine', 'hbs');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -26,8 +28,42 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(session(sess));
 
+function Cart (initItems) {
+    this.items = initItems;
+
+    this.totalQty = 0;
+    this.totalPrice = 0;
+
+    if (this.items) {
+        for (var key in this.items) {
+            this.totalQty += this.items[key].qty;
+            this.totalPrice += this.items[key].qty * this.items[key].item.price;
+        }
+    }
+
+    this.add = function (item, id) {
+        var storedItem = this.items[id];
+        if (!storedItem) {
+            storedItem = this.items[id] = {qty: 0, item: item, price: 0};
+        }
+        storedItem.qty++;
+        storedItem.price = storedItem.item.price * storedItem.qty;
+        this.totalQty++;
+        this.totalPrice += storedItem.price;
+    };
+
+    this.generateArray = function () {
+        var arr = [];
+        for (var id in this.items) {
+            arr.push(this.items[id]);
+        }
+        return arr;
+    };
+}
+
 
 const Product = mongoose.model('Product', {
+    imagePath: String,
     name: String,
     description: String,
     console: {
@@ -65,13 +101,6 @@ const User = mongoose.model('User', {
     }
 });
 
-const Cart = mongoose.model('Cart', {
-    username: String,
-    product_id: {
-        type: String,
-        required: true
-    }
-});
 
 var tokens = [];
 
@@ -87,6 +116,17 @@ function auth(req, res, next) {
         });
     }
 }
+
+app.get('/', function (req, res, next) {
+    Product.find(function (err, docs) {
+        var productChunks = [];
+        var chunkSize = 3;
+        for (var i = 0; i < docs.length; i += chunkSize) {
+            productChunks.push(docs.slice(i, i + chunkSize));
+        }
+        return res.render('shop/index', {title: 'Shopping Cart', products: productChunks});
+    });
+});
 
 
 app.get('/signup', function(req, res) {
@@ -117,8 +157,8 @@ app.post('/api/user/signup', function(req, res) {
 });
 
 
-app.get('/', auth, function(req, res) {
-    res.render('index.hbs')
+app.get('/generate_products', auth, function(req, res) {
+    res.render('generate.hbs')
     // console.log(token);
 });
 
@@ -146,16 +186,18 @@ app.post('/api/user/login', function(req, res) {
             req.session.username = username;
             req.session.cart = [];
             req.session.token = token;
-            res.json({
-                username: username,
-                token: token
-            });
+            // res.json({
+            //     username: username,
+            //     token: token
+            // });
+            res.redirect('/');
         });
     });
 });
 
 app.post('/add_game', function(req, res) {
     var p = new Product({
+        imagePath: req.body.imagePath,
         name: req.body.game,
         description: req.body.desc,
         console: req.body.console,
@@ -183,16 +225,47 @@ app.get('/api/products', function(req, res) {
     // res.render('')
 });
 
-app.get('/api/product/:id', function(req, res) {
-    var id = req.params.id;
-    Product.findById(id)
-        .then(function(docs) {
-            console.log(docs);
-        });
+// app.get('/api/product/:id', function(req, res) {
+//     var id = req.params.id;
+//     Product.findById(id)
+//         .then(function(docs) {
+//             console.log(docs);
+//         });
+// });
+
+// app.post('/api/add_to_cart', auth, function(req, res){
+//     var id = req.params.id;
+//     Product.findById(id)
+//     .then(function(docs){
+//         console.log(docs);
+//     });
+//     session.cart.push(id);
+// });
+
+app.get('/api/add-to-cart/:id', auth, function (req, res, next) {
+    var productId = req.params.id;
+    var cart = new Cart(req.session.cart ? req.session.cart.items : {});
+
+    Product.findById(productId, function (err, product) {
+        cart.add(product, product.id);
+        req.session.cart = cart;
+        res.redirect('/');
+    });
 });
 
-app.post('/api/shopping_cart', auth, function(req, res) {
+app.get('/shopping-cart', auth, function (req, res, next) {
+    if (!req.session.cart) {
+        return res.render('shop/shopping-cart', {products: null});
+    }
+    var cart = new Cart(req.session.cart.items);
+    res.render('shop/shopping-cart', {products: cart.generateArray(), totalPrice: cart.totalPrice});
+});
 
+// app.post('/api/shopping_cart', auth, function(req, res) {
+//     console.log(session.cart);
+// });
+
+app.post('/api/shopping_cart/checkout', auth, function(req, res){
 
 });
 
